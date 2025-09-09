@@ -163,6 +163,51 @@ const FertilityPolicySimulator = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AI-Driven Fertility Policy Simulator" />
         <meta name="twitter:description" content="Interactive research tool for demographic policy innovation" />
+        
+        {/* Custom slider styles - guaranteed to work */}
+        <style jsx global>{`
+          .custom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+          }
+          .custom-slider:hover {
+            opacity: 1;
+          }
+          .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .custom-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .custom-slider::-webkit-slider-thumb:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+          }
+          .custom-slider::-moz-range-thumb:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+          }
+        `}</style>
       </Head>
       
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -193,7 +238,7 @@ const FertilityPolicySimulator = () => {
                   <select
                     value={selectedCountry}
                     onChange={(e) => setSelectedCountry(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="south_korea">South Korea (TFR: 0.72)</option>
                     <option value="japan">Japan (TFR: 1.26)</option>
@@ -207,25 +252,30 @@ const FertilityPolicySimulator = () => {
                       <label className="text-sm font-medium">
                         {aiInterventions[policy].name}
                       </label>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 bg-blue-100 px-2 py-1 rounded">
                         {policies[policy]}%
                       </span>
                     </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={policies[policy]}
-                      onChange={(e) => setPolicies({
-                        ...policies,
-                        [policy]: parseInt(e.target.value)
-                      })}
-                      className="slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={policies[policy]}
+                        onChange={(e) => setPolicies({
+                          ...policies,
+                          [policy]: parseInt(e.target.value)
+                        })}
+                        className="custom-slider w-full cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${policies[policy]}%, #e5e7eb ${policies[policy]}%, #e5e7eb 100%)`
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
                       {aiInterventions[policy].description}
                     </p>
-                    <p className="text-xs text-blue-600 mt-1">
+                    <p className="text-xs text-blue-600 mt-1 font-medium">
                       Cost: ${(aiInterventions[policy].costPerPoint * policies[policy] / 1000000).toFixed(1)}M
                     </p>
                   </div>
@@ -236,7 +286,7 @@ const FertilityPolicySimulator = () => {
                   <button
                     onClick={simulateTFRImpact}
                     disabled={isSimulating}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
                   >
                     {isSimulating ? (
                       <>
@@ -252,7 +302,7 @@ const FertilityPolicySimulator = () => {
                   </button>
                   <button
                     onClick={resetSimulation}
-                    className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 flex items-center justify-center gap-2"
+                    className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 flex items-center justify-center gap-2 transition-colors"
                   >
                     <RotateCcw size={18} />
                     Reset
@@ -477,7 +527,7 @@ const FertilityPolicySimulator = () => {
             </p>
             <div className="mt-4 pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                <strong>Research Team:</strong> Tran Thu Hang (Hannah), Dedy E Lingga, 杨卓航 (Lucas), 
+                <strong>Research Team:</strong> Tran Thu Hang (Hannah), Dedy E Lingga, 楊哲航 (Lucas), 
                 Phan Viet Anh (Frank), Vu Huong Linh (Lylla)
               </p>
               <p className="text-xs text-gray-400 mt-2">
