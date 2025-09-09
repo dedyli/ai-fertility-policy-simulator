@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven Fertility Policy Simulator | East Asia Demographic Solutions</title>
+    <meta name="description" content="Interactive tool exploring how AI interventions can address declining fertility rates in East Asia. Research by Group 88 - STARS.">
+    <meta name="keywords" content="fertility policy, AI, East Asia, demographics, South Korea, Japan, total fertility rate">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="AI-Driven Fertility Policy Simulator">
+    <meta property="og:description" content="Explore how AI can address demographic challenges in East Asia">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AI-Driven Fertility Policy Simulator">
+    <meta name="twitter:description" content="Interactive research tool for demographic policy innovation">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Recharts -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } = Recharts;
+
+        const FertilityPolicySimulator = () => {
+            const [selectedCountry, setSelectedCountry] = useState('south_korea');
+            const [policies, setPolicies] = useState({
+                aiEducation: 0,
+                workplaceAI: 0,
+                childcareAI: 0,
+                housingAI: 0
+            });
+            const [results, setResults] = useState(null);
+            const [isSimulating, setIsSimulating] = useState(false);
+
+            // Country data
+            const countryData = {
+                south_korea: {
+                    name: 'South Korea',
+                    baseTFR: 0.72,
+                    baseFactors: {
+                        educationCost: 85,
+                        workLifeBalance: 25,
+                        childcareCost: 70,
+                        housingCost: 90
+                    },
+                    demographics: {
+                        population: 51.8,
+                        gdpPerCapita: 35000,
+                        femaleParticipation: 59.2
+                    }
+                },
+                japan: {
+                    name: 'Japan',
+                    baseTFR: 1.26,
+                    baseFactors: {
+                        educationCost: 75,
+                        workLifeBalance: 30,
+                        childcareCost: 65,
+                        housingCost: 80
+                    },
+                    demographics: {
+                        population: 124.8,
+                        gdpPerCapita: 40000,
+                        femaleParticipation: 71.2
+                    }
+                }
+            };
+
+            // AI interventions
+            const aiInterventions = {
+                aiEducation: {
+                    name: 'AI-Powered Education',
+                    description: 'Adaptive learning platforms reducing private tutoring costs',
+                    maxImpact: 0.15,
+                    costPerPoint: 50000,
+                    factors: ['educationCost']
+                },
+                workplaceAI: {
+                    name: 'Workplace AI Systems',
+                    description: 'Bias reduction and workflow optimization',
+                    maxImpact: 0.12,
+                    costPerPoint: 75000,
+                    factors: ['workLifeBalance']
+                },
+                childcareAI: {
+                    name: 'AI Childcare Support',
+                    description: 'Smart coordination and cost optimization',
+                    maxImpact: 0.10,
+                    costPerPoint: 60000,
+                    factors: ['childcareCost']
+                },
+                housingAI: {
+                    name: 'AI Housing Solutions',
+                    description: 'Smart city planning and affordable housing optimization',
+                    maxImpact: 0.08,
+                    costPerPoint: 100000,
+                    factors: ['housingCost']
+                }
+            };
+
+            const simulateTFRImpact = () => {
+                setIsSimulating(true);
+                
+                setTimeout(() => {
+                    const country = countryData[selectedCountry];
+                    let tfrImpact = 0;
+                    let totalCost = 0;
+                    let factorReductions = { ...country.baseFactors };
+
+                    Object.keys(policies).forEach(policy => {
+                        const intervention = aiInterventions[policy];
+                        const intensity = policies[policy] / 100;
+                        const policyImpact = intervention.maxImpact * intensity;
+                        tfrImpact += policyImpact;
+                        totalCost += intervention.costPerPoint * policies[policy];
+
+                        intervention.factors.forEach(factor => {
+                            factorReductions[factor] *= (1 - intensity * 0.4);
+                        });
+                    });
+
+                    const finalTFRIncrease = tfrImpact * (1 - Math.exp(-2 * tfrImpact));
+                    const projectedTFR = Math.min(2.5, country.baseTFR + finalTFRIncrease);
+
+                    const projectionData = [];
+                    for (let year = 0; year <= 10; year++) {
+                        const progress = Math.min(1, year / 7);
+                        const currentTFR = country.baseTFR + (projectedTFR - country.baseTFR) * progress;
+                        projectionData.push({
+                            year: 2025 + year,
+                            baseline: country.baseTFR,
+                            projected: Number(currentTFR.toFixed(3)),
+                            target: 2.1
+                        });
+                    }
+
+                    const populationIncrease = (projectedTFR - country.baseTFR) * country.demographics.population * 10000;
+                    const economicBenefit = populationIncrease * country.demographics.gdpPerCapita * 0.7;
+
+                    setResults({
+                        projectedTFR,
+                        tfrIncrease: projectedTFR - country.baseTFR,
+                        totalCost: totalCost / 1000000,
+                        projectionData,
+                        factorReductions,
+                        economicBenefit: economicBenefit / 1000000000,
+                        roi: economicBenefit / totalCost,
+                        populationIncrease
+                    });
+                    setIsSimulating(false);
+                }, 2000);
+            };
+
+            const resetSimulation = () => {
+                setPolicies({
+                    aiEducation: 0,
+                    workplaceAI: 0,
+                    childcareAI: 0,
+                    housingAI: 0
+                });
+                setResults(null);
+            };
+
+            const country = countryData[selectedCountry];
+
+            return (
+                <div className="min-h-screen p-6">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+                                AI-Driven Fertility Policy Simulator
+                            </h1>
+                            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                                Explore how AI-powered interventions can address demographic challenges in East Asia. 
+                                Adjust policy parameters and see projected impacts on Total Fertility Rate (TFR).
+                            </p>
+                            <div className="mt-4 text-sm text-gray-500">
+                                Research by Group 88 - STARS | Innovation and Entrepreneurship for the 21st Century
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Control Panel */}
+                            <div className="lg:col-span-1">
+                                <div className="bg-white rounded-lg shadow-lg p-6">
+                                    <h2 className="text-xl font-semibold mb-4">Policy Controls</h2>
+                                    
+                                    {/* Country Selection */}
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-medium mb-2">Select Country</label>
+                                        <select
+                                            value={selectedCountry}
+                                            onChange={(e) => setSelectedCountry(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-lg"
+                                        >
+                                            <option value="south_korea">South Korea (TFR: 0.72)</option>
+                                            <option value="japan">Japan (TFR: 1.26)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Policy Sliders */}
+                                    {Object.keys(aiInterventions).map((policy) => (
+                                        <div key={policy} className="mb-6">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <label className="text-sm font-medium">
+                                                    {aiInterventions[policy].name}
+                                                </label>
+                                                <span className="text-sm text-gray-500">
+                                                    {policies[policy]}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                value={policies[policy]}
+                                                onChange={(e) => setPolicies({
+                                                    ...policies,
+                                                    [policy]: parseInt(e.target.value)
+                                                })}
+                                                className="slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                            />
+                                            <p className="text-xs text-gray-600 mt-1">
+                                                {aiInterventions[policy].description}
+                                            </p>
+                                            <p className="text-xs text-blue-600 mt-1">
+                                                Cost: ${(aiInterventions[policy].costPerPoint * policies[policy] / 1000000).toFixed(1)}M
+                                            </p>
+                                        </div>
+                                    ))}
+
+                                    {/* Action Buttons */}
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={simulateTFRImpact}
+                                            disabled={isSimulating}
+                                            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {isSimulating ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                    Simulating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i data-lucide="play" className="w-5 h-5"></i>
+                                                    Run Simulation
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={resetSimulation}
+                                            className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="rotate-ccw" className="w-5 h-5"></i>
+                                            Reset
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Country Overview */}
+                                <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+                                    <h3 className="text-lg font-semibold mb-4">{country.name} Overview</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Current TFR:</span>
+                                            <span className="font-medium">{country.baseTFR}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Population:</span>
+                                            <span className="font-medium">{country.demographics.population}M</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">GDP per Capita:</span>
+                                            <span className="font-medium">${country.demographics.gdpPerCapita.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Female Labor Force:</span>
+                                            <span className="font-medium">{country.demographics.femaleParticipation}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Results Panel */}
+                            <div className="lg:col-span-2 space-y-6">
+                                {results ? (
+                                    <>
+                                        {/* Key Metrics */}
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                            <div className="bg-white rounded-lg shadow-lg p-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm text-gray-600">Projected TFR</p>
+                                                        <p className="text-2xl font-bold text-green-600">
+                                                            {results.projectedTFR.toFixed(3)}
+                                                        </p>
+                                                    </div>
+                                                    <i data-lucide="trending-up" className="w-6 h-6 text-green-500"></i>
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    +{(results.tfrIncrease * 100).toFixed(1)}% increase
+                                                </p>
+                                            </div>
+
+                                            <div className="bg-white rounded-lg shadow-lg p-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm text-gray-600">Total Cost</p>
+                                                        <p className="text-2xl font-bold text-blue-600">
+                                                            ${results.totalCost.toFixed(1)}M
+                                                        </p>
+                                                    </div>
+                                                    <i data-lucide="dollar-sign" className="w-6 h-6 text-blue-500"></i>
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    Implementation cost
+                                                </p>
+                                            </div>
+
+                                            <div className="bg-white rounded-lg shadow-lg p-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm text-gray-600">Economic ROI</p>
+                                                        <p className="text-2xl font-bold text-purple-600">
+                                                            {results.roi.toFixed(1)}x
+                                                        </p>
+                                                    </div>
+                                                    <i data-lucide="users" className="w-6 h-6 text-purple-500"></i>
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    Return on investment
+                                                </p>
+                                            </div>
+
+                                            <div className="bg-white rounded-lg shadow-lg p-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm text-gray-600">Time to Target</p>
+                                                        <p className="text-2xl font-bold text-orange-600">
+                                                            {results.projectedTFR >= 2.1 ? '7' : '10+'}
+                                                        </p>
+                                                    </div>
+                                                    <i data-lucide="clock" className="w-6 h-6 text-orange-500"></i>
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    Years to 2.1 TFR
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* TFR Projection Chart */}
+                                        <div className="bg-white rounded-lg shadow-lg p-6">
+                                            <h3 className="text-lg font-semibold mb-4">10-Year TFR Projection</h3>
+                                            <div style={{width: '100%', height: '300px'}}>
+                                                <ResponsiveContainer>
+                                                    <LineChart data={results.projectionData}>
+                                                        <CartesianGrid strokeDasharray="3 3" />
+                                                        <XAxis dataKey="year" />
+                                                        <YAxis domain={[0, 2.5]} />
+                                                        <Tooltip />
+                                                        <Legend />
+                                                        <Line 
+                                                            type="monotone" 
+                                                            dataKey="baseline" 
+                                                            stroke="#ef4444" 
+                                                            strokeDasharray="5 5"
+                                                            name="Current Baseline"
+                                                        />
+                                                        <Line 
+                                                            type="monotone" 
+                                                            dataKey="projected" 
+                                                            stroke="#3b82f6" 
+                                                            strokeWidth={3}
+                                                            name="With AI Interventions"
+                                                        />
+                                                        <Line 
+                                                            type="monotone" 
+                                                            dataKey="target" 
+                                                            stroke="#10b981" 
+                                                            strokeDasharray="10 5"
+                                                            name="Replacement Level (2.1)"
+                                                        />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+
+                                        {/* Economic Impact Summary */}
+                                        <div className="bg-white rounded-lg shadow-lg p-6">
+                                            <h3 className="text-lg font-semibold mb-4">Economic Impact Summary</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <h4 className="font-medium mb-2">Population Benefits</h4>
+                                                    <ul className="space-y-2 text-sm text-gray-600">
+                                                        <li>• Estimated population increase: {results.populationIncrease.toLocaleString()} people</li>
+                                                        <li>• Economic benefit: ${results.economicBenefit.toFixed(1)}B over lifetime</li>
+                                                        <li>• Reduced dependency ratio by 2040</li>
+                                                        <li>• Increased workforce sustainability</li>
+                                                    </ul>
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-medium mb-2">Implementation Benefits</h4>
+                                                    <ul className="space-y-2 text-sm text-gray-600">
+                                                        <li>• Reduced private education costs for families</li>
+                                                        <li>• Improved workplace gender equality</li>
+                                                        <li>• Enhanced work-life balance</li>
+                                                        <li>• Smart city infrastructure development</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+                                        <div className="text-gray-400 mb-4">
+                                            <i data-lucide="trending-up" className="w-16 h-16 mx-auto"></i>
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                                            Run Simulation to See Results
+                                        </h3>
+                                        <p className="text-gray-500">
+                                            Adjust the policy parameters and click "Run Simulation" to see the projected impact on fertility rates and economic outcomes.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="text-center mt-8 p-6 bg-white rounded-lg shadow-lg">
+                            <p className="text-sm text-gray-600 mb-2">
+                                <strong>About this Research:</strong> This interactive simulator demonstrates our AI-driven policy framework 
+                                for addressing demographic challenges in East Asia. Based on quantitative analysis of socio-economic barriers 
+                                and predictive modeling using OECD data.
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                <strong>Disclaimer:</strong> This is a research prototype for demonstration purposes. 
+                                Actual policy impacts may vary based on numerous factors not captured in this simplified model.
+                            </p>
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                <p className="text-sm text-gray-500">
+                                    <strong>Research Team:</strong> Tran Thu Hang (Hannah), Dedy E Lingga, 杨卓航 (Lucas), 
+                                    Phan Viet Anh (Frank), Vu Huong Linh (Lylla)
+                                </p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                    Group 88 - STARS | Innovation and Entrepreneurship for the 21st Century AI-Driven Digital Economy
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<FertilityPolicySimulator />, document.getElementById('root'));
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</body>
+</html>
