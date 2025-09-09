@@ -220,7 +220,7 @@ const FertilityPolicySimulator = () => {
                         ...policies,
                         [policy]: parseInt(e.target.value)
                       })}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
                     <p className="text-xs text-gray-600 mt-1">
                       {aiInterventions[policy].description}
